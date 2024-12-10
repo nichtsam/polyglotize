@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { createRequestHandler } from "@remix-run/express";
 import express from "express";
 

@@ -14,11 +14,13 @@
   "author": "Samuel Jensen",
   "license": "MIT",
   "dependencies": {
+    "@google/generative-ai": "0.21.0",
     "@react-router/remix-config-routes-adapter": "0.0.0-nightly-bf7ecb711-20240911",
     "@remix-run/express": "2.15.1",
     "@remix-run/node": "2.15.1",
     "@remix-run/react": "2.15.1",
     "cross-env": "7.0.3",
+    "dotenv": "16.4.7",
     "express": "4.21.2",
     "isbot": "4",
     "react": "19.0.0",
