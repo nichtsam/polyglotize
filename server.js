@@ -1,27 +1,27 @@
-import "dotenv/config";
-import { createRequestHandler } from "@remix-run/express";
-import express from "express";
+import 'dotenv/config'
+import { createRequestHandler } from '@remix-run/express'
+import express from 'express'
 
 const viteDevServer =
-  process.env.NODE_ENV === "production"
-    ? null
-    : await import("vite").then((vite) =>
-        vite.createServer({
-          server: { middlewareMode: true },
-        })
-      );
+	process.env.NODE_ENV === 'production'
+		? null
+		: await import('vite').then((vite) =>
+				vite.createServer({
+					server: { middlewareMode: true },
+				}),
+			)
 
-const app = express();
+const app = express()
 app.use(
-  viteDevServer ? viteDevServer.middlewares : express.static("build/client")
-);
+	viteDevServer ? viteDevServer.middlewares : express.static('build/client'),
+)
 
 const build = viteDevServer
-  ? () => viteDevServer.ssrLoadModule("virtual:remix/server-build")
-  : await import("./build/server/index.js");
+	? () => viteDevServer.ssrLoadModule('virtual:remix/server-build')
+	: await import('./build/server/index.js')
 
-app.all("*", createRequestHandler({ build }));
+app.all('*', createRequestHandler({ build }))
 
 app.listen(3000, () => {
-  console.log("App listening on http://localhost:3000");
-});
+	console.log('App listening on http://localhost:3000')
+})
