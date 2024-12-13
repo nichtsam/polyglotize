@@ -1,6 +1,7 @@
 import { type MetaFunction, type LinksFunction } from '@remix-run/node'
-import { Link, Links, Meta, Outlet, Scripts } from '@remix-run/react'
+import { Links, Meta, Outlet, Scripts } from '@remix-run/react'
 import stylesheet from '#app/styles/app.css?url'
+import { SiteHeader } from './components/site-header'
 
 export const meta: MetaFunction = () => [
 	{ title: 'wtf.' },
@@ -24,18 +25,7 @@ export default function App() {
 				<Links />
 			</head>
 			<body>
-				<header className="flex items-center gap-x-4 px-8 py-4">
-					<Logo />
-
-					<nav className="flex gap-x-4">
-						<Link prefetch="intent" to="/translation">
-							Translation
-						</Link>
-						<Link prefetch="intent" to="/elaboration">
-							Elaboration
-						</Link>
-					</nav>
-				</header>
+				<SiteHeader />
 				<main className="p-4">
 					<Outlet />
 				</main>
@@ -44,8 +34,4 @@ export default function App() {
 			</body>
 		</html>
 	)
-}
-
-function Logo() {
-	return <Link to="/">wtf.</Link>
 }
