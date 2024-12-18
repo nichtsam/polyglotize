@@ -2,6 +2,7 @@
   "private": true,
   "sideEffects": false,
   "type": "module",
+  "name": "wtf",
   "author": "Samuel Jensen",
   "license": "MIT",
   "imports": {
