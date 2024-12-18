@@ -1,15 +1,23 @@
 import { SchemaType } from '@google/generative-ai'
+import { z } from 'zod'
 import { genAI } from '#app/utils/ai.server.ts'
-import { type Language } from './translate.ts'
+import { Language } from './translate.ts'
+
+const polyglotizationSchema = z.array(
+	z.object({
+		language: z.nativeEnum(Language),
+		expressions: z.array(z.string()),
+	}),
+)
 
 export async function translate(string: string, targets: Language[]) {
 	const prompt =
 		`Translate the following string into the specified languages: ${targets}. ` +
-		'Generate exactly 3 translations for each language specified. ' +
+		'Generate exactly 1 translation for each language specified. ' +
 		`String: "${string}"`
 
 	const schema = {
-		description: 'An array of translations for the provided string.',
+		description: 'An array of translation groups for the provided string.',
 		type: SchemaType.ARRAY,
 		items: {
 			type: SchemaType.OBJECT,
@@ -19,7 +27,7 @@ export async function translate(string: string, targets: Language[]) {
 					type: SchemaType.STRING,
 					description: 'The name or code of the target language',
 				},
-				translations: {
+				expressions: {
 					nullable: false,
 					type: SchemaType.ARRAY,
 					description:
@@ -30,7 +38,7 @@ export async function translate(string: string, targets: Language[]) {
 					},
 				},
 			},
-			required: ['language', 'translations'],
+			required: ['language', 'expressions'],
 		},
 	}
 
@@ -43,5 +51,13 @@ export async function translate(string: string, targets: Language[]) {
 	})
 
 	const result = await model.generateContent(prompt)
-	return JSON.parse(result.response.text())
+	const parsedJson = JSON.parse(result.response.text())
+	const parsed = polyglotizationSchema.safeParse(parsedJson)
+
+	if (!parsed.success) {
+		console.error(parsed.error)
+		return null
+	}
+
+	return parsed.data
 }

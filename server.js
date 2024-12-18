@@ -1,6 +1,7 @@
 import 'dotenv/config'
 import { createRequestHandler } from '@remix-run/express'
 import express from 'express'
+import morgan from 'morgan'
 
 const viteDevServer =
 	process.env.NODE_ENV === 'production'
@@ -12,6 +13,25 @@ const viteDevServer =
 			)
 
 const app = express()
+app.use(
+	morgan('tiny', {
+		skip:
+			process.env.NODE_ENV === 'development'
+				? (req, res) => {
+						if (
+							req.url.startsWith('/node_modules') ||
+							req.url.startsWith('/app') ||
+							req.url.startsWith('/@') ||
+							req.url.startsWith('/__')
+						) {
+							if (res.statusCode === 200 || res.statusCode === 304) {
+								return true
+							}
+						}
+					}
+				: undefined,
+	}),
+)
 app.use(
 	viteDevServer ? viteDevServer.middlewares : express.static('build/client'),
 )

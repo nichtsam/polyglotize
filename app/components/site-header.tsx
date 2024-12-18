@@ -20,7 +20,7 @@ import {
 
 export function SiteHeader() {
 	return (
-		<header className="flex items-center gap-x-4 px-8 py-4 shadow">
+		<header className="z-10 flex items-center gap-x-4 px-6 py-2 shadow md:px-8 md:py-3">
 			<Logo />
 
 			<MainNav />
@@ -82,10 +82,7 @@ function MobileNav() {
 	return (
 		<Drawer open={open} onOpenChange={onOpenChange}>
 			<DrawerTrigger asChild>
-				<Button
-					variant="ghost"
-					className="-ml-2 mr-2 h-8 w-8 px-0 text-base hover:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 md:hidden"
-				>
+				<Button variant="ghost" className="md:hidden">
 					<Menu />
 					<span className="sr-only">Toggle Menu</span>
 				</Button>
@@ -115,7 +112,7 @@ function MobileNav() {
 function Logo() {
 	return (
 		<Link className="hover:underline" to="/">
-			<span className="text-3xl font-bold">wtf.</span>
+			<span className="text-xl font-bold md:text-3xl">wtf.</span>
 		</Link>
 	)
 }
