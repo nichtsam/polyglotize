@@ -15,7 +15,7 @@ export const links: LinksFunction = () => [
 	{ rel: 'stylesheet', href: stylesheet },
 ]
 
-export default function App() {
+export function Layout({ children }: { children: React.ReactNode }) {
 	return (
 		<html lang="en">
 			<head>
@@ -25,13 +25,21 @@ export default function App() {
 				<Links />
 			</head>
 			<body>
-				<SiteHeader />
-				<main className="p-4">
-					<Outlet />
-				</main>
+				{children}
 
 				<Scripts />
 			</body>
 		</html>
+	)
+}
+
+export default function App() {
+	return (
+		<div className="flex h-screen flex-col">
+			<SiteHeader />
+			<main className="min-h-0 flex-grow">
+				<Outlet />
+			</main>
+		</div>
 	)
 }
