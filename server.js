@@ -1,7 +1,11 @@
 import 'dotenv/config'
 import { createRequestHandler } from '@remix-run/express'
+import chalk from 'chalk'
+import closeWithGrace from 'close-with-grace'
 import express from 'express'
+import getPort, { portNumbers } from 'get-port'
 import morgan from 'morgan'
+import { printUrls } from './server-utils.js'
 
 const viteDevServer =
 	process.env.NODE_ENV === 'production'
@@ -42,6 +46,38 @@ const build = viteDevServer
 
 app.all('*', createRequestHandler({ build }))
 
-app.listen(3000, () => {
-	console.log('App listening on http://localhost:3000')
+const desiredPort = Number(process.env.PORT || 3000)
+const portToUse = await getPort({
+	port: portNumbers(desiredPort, desiredPort + 100),
+})
+
+const server = app.listen(portToUse, () => {
+	const addr = server.address()
+	const portUsed = typeof addr === 'object' ? addr.port : addr
+
+	if (portUsed !== desiredPort) {
+		console.warn(
+			chalk.yellow(
+				`⚠️  Port ${desiredPort} is not available, using ${portUsed} instead.`,
+			),
+		)
+	}
+
+	console.log(`🚀 App started`)
+
+	printUrls(portUsed)
+
+	console.log(chalk.bold('Press Ctrl+C to stop'))
+})
+
+closeWithGrace(async ({ err }) => {
+	if (err) {
+		console.error(chalk.red(err))
+		console.error(chalk.red(err.stack))
+		process.exit(1)
+	}
+
+	await new Promise((resolve, reject) => {
+		server.close((e) => (e ? reject(e) : resolve()))
+	})
 })
