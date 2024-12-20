@@ -6,7 +6,7 @@ import {
 } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { useFetcher } from '@remix-run/react'
-import { AlertCircle, ArrowUp } from 'lucide-react'
+import { AlertCircle, ArrowUp, LoaderCircle } from 'lucide-react'
 import { Toggle } from '#app/components/toggle.tsx'
 import {
 	Alert,
@@ -32,7 +32,7 @@ export default function Page() {
 	const [form, fields] = useForm({
 		lastResult: fetcher.data?.result,
 		constraint: getZodConstraint(formSchema),
-		shouldRevalidate: 'onInput',
+		shouldValidate: 'onInput',
 		onValidate: ({ formData }) =>
 			parseWithZod(formData, { schema: formSchema }),
 	})
@@ -40,32 +40,50 @@ export default function Page() {
 	const allErrors = Object.values(form.allErrors).flat()
 
 	return (
-		<div className="mx-auto flex h-full flex-col">
-			<ScrollArea className="flex-grow px-4 font-serif">
-				{fetcher.state !== 'idle' && <p>Loading...</p>}
+		<div className="mx-auto flex h-full max-w-[85ch] flex-col font-serif">
+			<ScrollArea className="flex-grow px-4">
+				<fieldset form={form.id} className="p-2 pt-4">
+					<legend className="sr-only">Target Languages</legend>
+					<p className="text-center" aria-hidden="true">
+						Target Languages
+					</p>
+
+					<div className="flex flex-wrap justify-center gap-2">
+						{getCollectionProps(fields.languages, {
+							type: 'checkbox',
+							options: langauges,
+						}).map(({ key, ...props }) => (
+							<Toggle key={key} {...props} variant="outline">
+								{languageConfigs[props.value as Language].label}
+							</Toggle>
+						))}
+					</div>
+				</fieldset>
+				<hr className="my-2" />
+				{fetcher.state !== 'idle' && (
+					<div className="flex items-center justify-center">
+						<LoaderCircle className="animate-spin" />
+					</div>
+				)}
 				{data && (
 					<div className="flex flex-col gap-y-4 py-4">
 						<div className="flex flex-col items-end">
 							<Card>
-								<CardContent className="text-lg md:text-2xl">
+								<CardContent className="px-4 py-2">
 									{data.expression}
 								</CardContent>
 							</Card>
 						</div>
 
 						<div className="flex flex-col items-start">
-							<Card>
-								<CardContent>
+							<Card className="min-w-[70%]">
+								<CardContent className="px-4 py-2">
 									<article className="flex flex-col gap-y-4">
 										{data.polyglotization.map(({ language, expressions }) => (
 											<div key={language}>
-												<h2 className="text-xl md:text-3xl">
-													{languageConfigs[language].label}
-												</h2>
+												<h2>{languageConfigs[language].label}</h2>
 												{expressions.map((expr) => (
-													<p key={expr} className="text-lg md:text-2xl">
-														{expr}
-													</p>
+													<p key={expr}>{expr}</p>
 												))}
 											</div>
 										))}
@@ -94,34 +112,25 @@ export default function Page() {
 					className="flex flex-col gap-y-4 pb-4"
 					{...getFormProps(form)}
 				>
-					<div className="flex min-h-[60px] w-full flex-col gap-y-2 rounded-md border border-input bg-transparent p-3 text-base shadow md:text-sm">
+					<div className="flex min-h-[60px] w-full flex-col gap-y-2 rounded-md border border-input bg-transparent p-3 shadow">
 						<textarea
 							{...getTextareaProps(fields.expression)}
 							placeholder="What do you want to express today?"
 							aria-label="Expression to be translated"
-							className="resize-none font-serif text-xl focus-visible:outline-none md:text-3xl"
+							className="resize-none focus-visible:outline-none"
 							onInput={(e) => {
 								const target = e.target as HTMLTextAreaElement
 								target.style.height = 'auto'
 								target.style.height = target.scrollHeight + 'px'
 							}}
 						/>
-						<div className="flex justify-between">
-							<fieldset>
-								<legend className="sr-only">Languages</legend>
-
-								<div className="flex flex-wrap gap-2">
-									{getCollectionProps(fields.languages, {
-										type: 'checkbox',
-										options: langauges,
-									}).map(({ key, ...props }) => (
-										<Toggle key={key} {...props} variant="outline">
-											{languageConfigs[props.value as Language].label}
-										</Toggle>
-									))}
-								</div>
-							</fieldset>
-							<Button size="icon" type="submit" className="rounded-full">
+						<div className="flex flex-wrap justify-between gap-2">
+							<Button
+								size="icon"
+								type="submit"
+								className="ml-auto shrink-0 rounded-full"
+								disabled={!form.valid}
+							>
 								<ArrowUp />
 							</Button>
 						</div>
