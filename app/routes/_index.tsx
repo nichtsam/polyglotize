@@ -1,3 +1,5 @@
+import { Link } from '@remix-run/react'
+
 export default function Page() {
 	return (
 		<article className="prose p-4 dark:prose-invert">
