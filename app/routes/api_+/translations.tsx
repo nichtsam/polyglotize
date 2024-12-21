@@ -1,8 +1,8 @@
 import { parseWithZod } from '@conform-to/zod'
 import { json, type LoaderFunctionArgs } from '@remix-run/node'
 import { z } from 'zod'
-import { translate } from '#app/utils/translate.server.ts'
-import { targetLangs } from '#app/utils/translate.ts'
+import { targetLangs } from '#app/utils/translation.ts'
+import { Translator } from '#app/utils/translator.server.ts'
 
 export const schema = z.object({
 	expression: z
@@ -29,7 +29,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 	}
 
 	const { expression, languages } = submission.value
-	const polyglotization = await translate(expression, languages)
+	const translator = new Translator(process.env.DEEPL_KEY!)
+	const polyglotization = await translator.translate(expression, languages)
 
 	if (!polyglotization) {
 		throw new Error('TODO')
