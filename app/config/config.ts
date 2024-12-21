@@ -8,5 +8,6 @@ export const mainNav: NavLink[] = [
 	{
 		title: 'Elaboration',
 		href: '/elaboration',
+		disabled: true,
 	},
-]
+].filter(({ disabled }) => !disabled)
