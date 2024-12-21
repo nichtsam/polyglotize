@@ -1,58 +1,28 @@
-import { SchemaType } from '@google/generative-ai'
+import { Translator, type TargetLanguageCode } from 'deepl-node'
 import { z } from 'zod'
-import { genAI } from '#app/utils/ai.server.ts'
-import { Language } from './translate.ts'
+import { targetLangs } from './translate'
+
+const translator = new Translator(process.env.DEEPL_KEY!)
 
 const polyglotizationSchema = z.array(
 	z.object({
-		language: z.nativeEnum(Language),
+		language: z.enum(targetLangs),
 		expressions: z.array(z.string()),
 	}),
 )
 
-export async function translate(string: string, targets: Language[]) {
-	const prompt =
-		`Translate the following string into the specified languages: ${targets}. ` +
-		'Generate exactly 1 translation for each language specified. ' +
-		`String: "${string}"`
+export async function translate(string: string, targets: TargetLanguageCode[]) {
+	const promises = targets.map(async (target) => {
+		const translation = await translator.translateText(string, null, target)
 
-	const schema = {
-		description: 'An array of translation groups for the provided string.',
-		type: SchemaType.ARRAY,
-		items: {
-			type: SchemaType.OBJECT,
-			properties: {
-				language: {
-					nullable: false,
-					type: SchemaType.STRING,
-					description: 'The name or code of the target language',
-				},
-				expressions: {
-					nullable: false,
-					type: SchemaType.ARRAY,
-					description:
-						'An array of possible translations into the target language.',
-					items: {
-						type: SchemaType.STRING,
-						description: 'The translated string in the target language.',
-					},
-				},
-			},
-			required: ['language', 'expressions'],
-		},
-	}
-
-	const model = genAI.getGenerativeModel({
-		model: 'gemini-1.5-flash-8b',
-		generationConfig: {
-			responseMimeType: 'application/json',
-			responseSchema: schema,
-		},
+		return {
+			language: target,
+			expressions: [translation.text],
+		}
 	})
 
-	const result = await model.generateContent(prompt)
-	const parsedJson = JSON.parse(result.response.text())
-	const parsed = polyglotizationSchema.safeParse(parsedJson)
+	const result = await Promise.all(promises)
+	const parsed = polyglotizationSchema.safeParse(result)
 
 	if (!parsed.success) {
 		console.error(parsed.error)

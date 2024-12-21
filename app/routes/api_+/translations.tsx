@@ -2,7 +2,7 @@ import { parseWithZod } from '@conform-to/zod'
 import { json, type LoaderFunctionArgs } from '@remix-run/node'
 import { z } from 'zod'
 import { translate } from '#app/utils/translate.server.ts'
-import { Language } from '#app/utils/translate.ts'
+import { targetLangs } from '#app/utils/translate.ts'
 
 export const schema = z.object({
 	expression: z
@@ -11,7 +11,7 @@ export const schema = z.object({
 		})
 		.max(120, 'Expression is limited to 120 characters.'),
 	languages: z
-		.array(z.nativeEnum(Language))
+		.array(z.enum(targetLangs))
 		.min(1, 'At least one of the target languages must be selected!'),
 })
 

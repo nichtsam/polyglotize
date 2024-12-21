@@ -16,11 +16,7 @@ import {
 import { Button } from '#app/components/ui/button.tsx'
 import { Card, CardContent } from '#app/components/ui/card.tsx'
 import { ScrollArea } from '#app/components/ui/scroll-area.tsx'
-import {
-	langauges,
-	type Language,
-	languageConfigs,
-} from '#app/utils/translate.ts'
+import { targetLangConfigs, targetLangs } from '#app/utils/translate.ts'
 import {
 	schema as formSchema,
 	type loader as translationsLoader,
@@ -51,10 +47,13 @@ export default function Page() {
 					<div className="flex flex-wrap justify-center gap-2">
 						{getCollectionProps(fields.languages, {
 							type: 'checkbox',
-							options: langauges,
+							options: targetLangs,
 						}).map(({ key, ...props }) => (
 							<Toggle key={key} {...props} variant="outline">
-								{languageConfigs[props.value as Language].label}
+								{
+									targetLangConfigs[props.value as (typeof targetLangs)[number]]
+										.label
+								}
 							</Toggle>
 						))}
 					</div>
@@ -81,7 +80,7 @@ export default function Page() {
 									<article className="flex flex-col gap-y-4">
 										{data.polyglotization.map(({ language, expressions }) => (
 											<div key={language}>
-												<h2>{languageConfigs[language].label}</h2>
+												<h2>{targetLangConfigs[language].label}</h2>
 												{expressions.map((expr) => (
 													<p key={expr}>{expr}</p>
 												))}
