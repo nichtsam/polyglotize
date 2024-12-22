@@ -4,10 +4,10 @@ import stylesheet from '#app/styles/app.css?url'
 import { SiteHeader } from './components/site-header'
 
 export const meta: MetaFunction = () => [
-	{ title: 'wtf.' },
+	{ title: 'Polyglotize' },
 	{
 		name: 'description',
-		content: `Translation app for language learning purpose`,
+		content: `Learn languages by expressing and understanding the logic behind.`,
 	},
 ]
 

@@ -112,7 +112,7 @@ function MobileNav() {
 function Logo() {
 	return (
 		<Link className="hover:underline" to="/">
-			<span className="text-xl font-bold md:text-3xl">wtf.</span>
+			<span className="text-xl font-bold md:text-3xl">Polyglotize</span>
 		</Link>
 	)
 }

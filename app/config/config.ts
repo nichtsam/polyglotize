@@ -2,12 +2,12 @@ import { type NavLink } from '#app/model/nav.ts'
 
 export const mainNav: NavLink[] = [
 	{
-		title: 'Polyglotize',
-		href: '/polyglotize',
+		title: 'Translate',
+		href: '/translate',
 	},
 	{
-		title: 'Elaboration',
-		href: '/elaboration',
+		title: 'elaborate',
+		href: '/elaborate',
 		disabled: true,
 	},
 ].filter(({ disabled }) => !disabled)

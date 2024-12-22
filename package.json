@@ -2,7 +2,7 @@
   "private": true,
   "sideEffects": false,
   "type": "module",
-  "name": "wtf",
+  "name": "polyglotize",
   "author": "Samuel Jensen",
   "license": "MIT",
   "imports": {

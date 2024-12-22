@@ -19,11 +19,11 @@ import { ScrollArea } from '#app/components/ui/scroll-area.tsx'
 import { targetLangConfigs, targetLangs } from '#app/utils/translation.ts'
 import {
 	schema as formSchema,
-	type loader as translationsLoader,
-} from './api_+/translations.tsx'
+	type loader as translationLoader,
+} from './api_+/translation.tsx'
 
 export default function Page() {
-	const fetcher = useFetcher<typeof translationsLoader>()
+	const fetcher = useFetcher<typeof translationLoader>()
 	const data = fetcher.data?.data ?? undefined
 	const [form, fields] = useForm({
 		lastResult: fetcher.data?.result,
@@ -78,7 +78,7 @@ export default function Page() {
 							<Card className="min-w-[70%]">
 								<CardContent className="px-4 py-2">
 									<article className="flex flex-col gap-y-4">
-										{data.polyglotization.map(({ language, expressions }) => (
+										{data.translation.map(({ language, expressions }) => (
 											<div key={language}>
 												<h2>{targetLangConfigs[language].label}</h2>
 												{expressions.map((expr) => (
@@ -107,7 +107,7 @@ export default function Page() {
 				)}
 				<fetcher.Form
 					method="get"
-					action="/api/translations"
+					action="/api/translation"
 					className="flex flex-col gap-y-4 pb-4"
 					{...getFormProps(form)}
 				>

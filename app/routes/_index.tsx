@@ -1,4 +1,5 @@
 import { Link } from '@remix-run/react'
+import { mainNav } from '#app/config/config.ts'
 
 export default function Page() {
 	return (

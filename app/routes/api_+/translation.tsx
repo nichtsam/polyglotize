@@ -30,9 +30,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 	const { expression, languages } = submission.value
 	const translator = new Translator(process.env.DEEPL_KEY!)
-	const polyglotization = await translator.translate(expression, languages)
+	const translation = await translator.translate(expression, languages)
 
-	if (!polyglotization) {
+	if (!translation) {
 		throw new Error('TODO')
 	}
 
@@ -40,7 +40,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 		result: submission.reply(),
 		data: {
 			expression,
-			polyglotization,
+			translation,
 		},
 	})
 }
