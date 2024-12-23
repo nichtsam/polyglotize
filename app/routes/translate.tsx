@@ -5,8 +5,10 @@ import {
 	useForm,
 } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { useFetcher } from '@remix-run/react'
+import { json, type LoaderFunctionArgs } from '@remix-run/node'
+import { Form, useActionData } from '@remix-run/react'
 import { AlertCircle, ArrowUp, LoaderCircle } from 'lucide-react'
+import { z } from 'zod'
 import { Toggle } from '#app/components/toggle.tsx'
 import {
 	Alert,
@@ -17,20 +19,57 @@ import { Button } from '#app/components/ui/button.tsx'
 import { Card, CardContent } from '#app/components/ui/card.tsx'
 import { ScrollArea } from '#app/components/ui/scroll-area.tsx'
 import { targetLangConfigs, targetLangs } from '#app/utils/translation.ts'
-import {
-	schema as formSchema,
-	type loader as translationLoader,
-} from './api_+/translation.tsx'
+import { Translator } from '#app/utils/translator.server.ts'
+import { useIsPending } from '#app/utils/ui.ts'
+
+export const schema = z.object({
+	expression: z
+		.string({
+			required_error: 'Expression is required for an polyglotization!',
+		})
+		.max(120, 'Expression is limited to 120 characters.'),
+	languages: z
+		.array(z.enum(targetLangs))
+		.min(1, 'At least one of the target languages must be selected!'),
+})
+
+export const action = async ({ request }: LoaderFunctionArgs) => {
+	const formData = await request.formData()
+	const submission = parseWithZod(formData, { schema })
+
+	if (submission.status !== 'success') {
+		return json(
+			{ result: submission.reply(), data: null },
+			{ status: submission.status === 'error' ? 400 : 200 },
+		)
+	}
+
+	const { expression, languages } = submission.value
+	const translator = new Translator(process.env.DEEPL_KEY!)
+	const translation = await translator.translate(expression, languages)
+
+	if (!translation) {
+		return json({ result: submission.reply(), data: null }, { status: 400 })
+	}
+
+	return json({
+		result: submission.reply(),
+		data: {
+			expression,
+			translation,
+		},
+	})
+}
 
 export default function Page() {
-	const fetcher = useFetcher<typeof translationLoader>()
-	const data = fetcher.data?.data ?? undefined
+	const actionData = useActionData<typeof action>()
+	const isPending = useIsPending()
+
 	const [form, fields] = useForm({
-		lastResult: fetcher.data?.result,
-		constraint: getZodConstraint(formSchema),
+		lastResult: actionData?.result,
+		constraint: getZodConstraint(schema),
 		shouldValidate: 'onInput',
-		onValidate: ({ formData }) =>
-			parseWithZod(formData, { schema: formSchema }),
+		onValidate: ({ formData }) => parseWithZod(formData, { schema }),
 	})
 
 	const allErrors = Object.values(form.allErrors).flat()
@@ -59,17 +98,17 @@ export default function Page() {
 					</div>
 				</fieldset>
 				<hr className="my-2" />
-				{fetcher.state !== 'idle' && (
+				{isPending && (
 					<div className="flex items-center justify-center">
 						<LoaderCircle className="animate-spin" />
 					</div>
 				)}
-				{data && (
+				{actionData?.data && (
 					<div className="flex flex-col gap-y-4 py-4">
 						<div className="flex flex-col items-end">
 							<Card>
 								<CardContent className="px-4 py-2">
-									{data.expression}
+									{actionData.data.expression}
 								</CardContent>
 							</Card>
 						</div>
@@ -78,14 +117,16 @@ export default function Page() {
 							<Card className="min-w-[70%]">
 								<CardContent className="px-4 py-2">
 									<article className="flex flex-col gap-y-4">
-										{data.translation.map(({ language, expressions }) => (
-											<div key={language}>
-												<h2>{targetLangConfigs[language].label}</h2>
-												{expressions.map((expr) => (
-													<p key={expr}>{expr}</p>
-												))}
-											</div>
-										))}
+										{actionData.data.translation.map(
+											({ language, expressions }) => (
+												<div key={language}>
+													<h2>{targetLangConfigs[language].label}</h2>
+													{expressions.map((expr) => (
+														<p key={expr}>{expr}</p>
+													))}
+												</div>
+											),
+										)}
 									</article>
 								</CardContent>
 							</Card>
@@ -105,9 +146,8 @@ export default function Page() {
 						<AlertDescription>{allErrors[0]}</AlertDescription>
 					</Alert>
 				)}
-				<fetcher.Form
-					method="get"
-					action="/api/translation"
+				<Form
+					method="post"
 					className="flex flex-col gap-y-4 pb-4"
 					{...getFormProps(form)}
 				>
@@ -134,7 +174,7 @@ export default function Page() {
 							</Button>
 						</div>
 					</div>
-				</fetcher.Form>
+				</Form>
 			</div>
 		</div>
 	)
