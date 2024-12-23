@@ -5,6 +5,10 @@
   "name": "polyglotize",
   "author": "Samuel Jensen",
   "license": "MIT",
+  "engines": {
+    "node": "20",
+    "pnpm": "9"
+  },
   "imports": {
     "#app/*": "./app/*"
   },

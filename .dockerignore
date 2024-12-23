@@ -1,0 +1,14 @@
+.git
+.gitignore
+
+Dockerfile
+.dockerignore
+
+# gitignore
+.vscode
+node_modules
+/.cache
+/build
+.env
+/local
+*.local.*
