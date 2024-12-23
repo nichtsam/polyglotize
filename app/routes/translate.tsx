@@ -5,7 +5,7 @@ import {
 	useForm,
 } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { json, type LoaderFunctionArgs } from '@remix-run/node'
+import { data, type LoaderFunctionArgs } from '@remix-run/node'
 import { Form, useActionData } from '@remix-run/react'
 import { AlertCircle, ArrowUp, LoaderCircle } from 'lucide-react'
 import { z } from 'zod'
@@ -38,7 +38,7 @@ export const action = async ({ request }: LoaderFunctionArgs) => {
 	const submission = parseWithZod(formData, { schema })
 
 	if (submission.status !== 'success') {
-		return json(
+		return data(
 			{ result: submission.reply(), data: null },
 			{ status: submission.status === 'error' ? 400 : 200 },
 		)
@@ -49,10 +49,10 @@ export const action = async ({ request }: LoaderFunctionArgs) => {
 	const translation = await translator.translate(expression, languages)
 
 	if (!translation) {
-		return json({ result: submission.reply(), data: null }, { status: 400 })
+		return data({ result: submission.reply(), data: null }, { status: 400 })
 	}
 
-	return json({
+	return data({
 		result: submission.reply(),
 		data: {
 			expression,

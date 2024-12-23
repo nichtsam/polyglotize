@@ -3,6 +3,6 @@ import { flatRoutes } from 'remix-flat-routes'
 
 export default remixConfigRoutes((defineRoutes) => {
 	return flatRoutes('routes', defineRoutes, {
-		/* options */
+		ignoredRouteFiles: ['.*', '**/*.server.*', '**/*.client.*'],
 	})
 })
