@@ -1,3 +1,11 @@
+# IDE specific
+.vscode
+
 node_modules
-build
+
+/.cache
+/build
 .env
+
+/local
+*.local.*
