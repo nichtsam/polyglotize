@@ -20,7 +20,7 @@ import {
 
 export function SiteHeader() {
 	return (
-		<header className="z-10 flex items-center gap-x-4 px-6 py-2 shadow md:px-8 md:py-3">
+		<header className="z-10 flex h-14 items-center gap-x-4 px-6 shadow md:px-8 md:py-3">
 			<Logo />
 
 			<MainNav />
