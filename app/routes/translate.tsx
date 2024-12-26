@@ -75,7 +75,7 @@ export default function Page() {
 	const allErrors = Object.values(form.allErrors).flat()
 
 	return (
-		<div className="mx-auto flex h-full max-w-[85ch] flex-col font-serif">
+		<div className="mx-auto flex w-full max-w-[85ch] flex-grow flex-col font-serif">
 			<ScrollArea className="flex-grow px-4">
 				<fieldset form={form.id} className="p-2 pt-4">
 					<legend className="sr-only">Target Languages</legend>
