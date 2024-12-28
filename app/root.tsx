@@ -35,7 +35,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
 	return (
-		<div className="flex min-h-screen flex-col">
+		<div className="flex min-h-svh flex-col">
 			<SiteHeader />
 			<div className="flex flex-grow flex-col">
 				<Outlet />

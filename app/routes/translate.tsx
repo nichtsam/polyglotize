@@ -1,15 +1,13 @@
-import {
-	getCollectionProps,
-	getFormProps,
-	getTextareaProps,
-	useForm,
-} from '@conform-to/react'
+import { getFormProps, getTextareaProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { data, type LoaderFunctionArgs } from '@remix-run/node'
-import { Form, useActionData } from '@remix-run/react'
-import { AlertCircle, ArrowUp, LoaderCircle } from 'lucide-react'
+import {
+	type LoaderFunctionArgs,
+	type ActionFunctionArgs,
+	data,
+} from '@remix-run/node'
+import { Form, Link, useActionData, useLoaderData } from '@remix-run/react'
+import { AlertCircle, ArrowUp, LoaderCircle, Settings2 } from 'lucide-react'
 import { z } from 'zod'
-import { Toggle } from '#app/components/toggle.tsx'
 import {
 	Alert,
 	AlertDescription,
@@ -18,8 +16,8 @@ import {
 import { Button } from '#app/components/ui/button.tsx'
 import { Card, CardContent } from '#app/components/ui/card.tsx'
 import { ScrollArea } from '#app/components/ui/scroll-area.tsx'
-import { targetLangConfigs, targetLangs } from '#app/utils/translation.ts'
-import { Translator } from '#app/utils/translator.server.ts'
+import { targetLangConfig } from '#app/utils/translation.ts'
+import { getSettingsSession, Translator } from '#app/utils/translator.server.ts'
 import { useIsPending } from '#app/utils/ui.ts'
 
 export const schema = z.object({
@@ -28,12 +26,25 @@ export const schema = z.object({
 			required_error: 'Expression is required for an polyglotization!',
 		})
 		.max(120, 'Expression is limited to 120 characters.'),
-	languages: z
-		.array(z.enum(targetLangs))
-		.min(1, 'At least one of the target languages must be selected!'),
 })
 
-export const action = async ({ request }: LoaderFunctionArgs) => {
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+	const settings = await getSettingsSession(request)
+
+	return {
+		valid: !!settings.data.targetLanguages,
+	}
+}
+
+export const action = async ({ request }: ActionFunctionArgs) => {
+	const translationSession = await getSettingsSession(request)
+	const sourceLanguage = translationSession.get('sourceLanguage')
+	const targetLanguages = translationSession.get('targetLanguages')
+
+	if (!targetLanguages) {
+		throw new Error('TODO')
+	}
+
 	const formData = await request.formData()
 	const submission = parseWithZod(formData, { schema })
 
@@ -44,16 +55,20 @@ export const action = async ({ request }: LoaderFunctionArgs) => {
 		)
 	}
 
-	const { expression, languages } = submission.value
+	const { expression } = submission.value
 	const translator = new Translator(process.env.DEEPL_KEY!)
-	const translation = await translator.translate(expression, languages)
+	const translation = await translator.translate(
+		expression,
+		sourceLanguage,
+		targetLanguages,
+	)
 
 	if (!translation) {
 		return data({ result: submission.reply(), data: null }, { status: 400 })
 	}
 
 	return data({
-		result: submission.reply(),
+		result: submission.reply({ resetForm: true }),
 		data: {
 			expression,
 			translation,
@@ -62,13 +77,13 @@ export const action = async ({ request }: LoaderFunctionArgs) => {
 }
 
 export default function Page() {
+	const data = useLoaderData<typeof loader>()
 	const actionData = useActionData<typeof action>()
 	const isPending = useIsPending()
 
 	const [form, fields] = useForm({
 		lastResult: actionData?.result,
 		constraint: getZodConstraint(schema),
-		shouldValidate: 'onInput',
 		onValidate: ({ formData }) => parseWithZod(formData, { schema }),
 	})
 
@@ -77,32 +92,6 @@ export default function Page() {
 	return (
 		<div className="mx-auto flex w-full max-w-[85ch] flex-grow flex-col font-serif">
 			<ScrollArea className="flex-grow px-4">
-				<fieldset form={form.id} className="p-2 pt-4">
-					<legend className="sr-only">Target Languages</legend>
-					<p className="text-center" aria-hidden="true">
-						Target Languages
-					</p>
-
-					<div className="flex flex-wrap justify-center gap-2">
-						{getCollectionProps(fields.languages, {
-							type: 'checkbox',
-							options: targetLangs,
-						}).map(({ key, ...props }) => (
-							<Toggle key={key} {...props} variant="outline">
-								{
-									targetLangConfigs[props.value as (typeof targetLangs)[number]]
-										.label
-								}
-							</Toggle>
-						))}
-					</div>
-				</fieldset>
-				<hr className="my-2" />
-				{isPending && (
-					<div className="flex items-center justify-center">
-						<LoaderCircle className="animate-spin" />
-					</div>
-				)}
 				{actionData?.data && (
 					<div className="flex flex-col gap-y-4 py-4">
 						<div className="flex flex-col items-end">
@@ -120,7 +109,7 @@ export default function Page() {
 										{actionData.data.translation.map(
 											({ language, expressions }) => (
 												<div key={language}>
-													<h2>{targetLangConfigs[language].label}</h2>
+													<h2>{targetLangConfig[language].label}</h2>
 													{expressions.map((expr) => (
 														<p key={expr}>{expr}</p>
 													))}
@@ -136,6 +125,26 @@ export default function Page() {
 			</ScrollArea>
 
 			<div className="relative px-4">
+				{!data.valid && (
+					<Alert
+						variant="destructive"
+						className="absolute inset-x-4 bottom-full mb-2 w-auto bg-background"
+					>
+						<AlertCircle className="h-4 w-4" />
+						<AlertTitle>Missing Settings</AlertTitle>
+						<AlertDescription>
+							You're missing something in your{' '}
+							<Link
+								className="text-foreground underline"
+								to="/settings"
+								prefetch="intent"
+							>
+								settings
+							</Link>
+							!
+						</AlertDescription>
+					</Alert>
+				)}
 				{allErrors.length > 0 && (
 					<Alert
 						variant="destructive"
@@ -164,13 +173,25 @@ export default function Page() {
 							}}
 						/>
 						<div className="flex flex-wrap justify-between gap-2">
+							<div>
+								<Button type="button" variant="ghost" size="icon" asChild>
+									<Link to="/settings">
+										<Settings2 />
+									</Link>
+								</Button>
+							</div>
+
 							<Button
 								size="icon"
 								type="submit"
 								className="ml-auto shrink-0 rounded-full"
-								disabled={!form.valid}
+								disabled={isPending || !data.valid || !fields.expression.value}
 							>
-								<ArrowUp />
+								{isPending ? (
+									<LoaderCircle className="animate-spin" />
+								) : (
+									<ArrowUp />
+								)}
 							</Button>
 						</div>
 					</div>

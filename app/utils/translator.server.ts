@@ -1,13 +1,35 @@
-import {
-	Translator as DeeplTranslator,
-	type TargetLanguageCode,
-} from 'deepl-node'
+import { createCookieSessionStorage } from '@remix-run/node'
+import { Translator as DeeplTranslator } from 'deepl-node'
+import { createTypedSessionStorage } from 'remix-utils/typed-session'
 import { z } from 'zod'
-import { targetLangs } from './translation.ts'
+import { getCookieHeader } from './request.server'
+import { SourceLangCode, TargetLangCode } from './translation.ts'
+
+export const settingsSessionStorage = createTypedSessionStorage({
+	sessionStorage: createCookieSessionStorage({
+		cookie: {
+			name: '_translation',
+			sameSite: 'lax',
+			path: '/',
+			httpOnly: true,
+			secrets: process.env.SESSION_SECRET!.split(','),
+			secure: process.env.NODE_ENV === 'production',
+		},
+	}),
+	schema: z.object({
+		sourceLanguage: SourceLangCode.default('detect'),
+		targetLanguages: z.array(TargetLangCode).min(1).optional(),
+	}),
+})
+
+export const getSettingsSession = async (request: Request) => {
+	const cookie = getCookieHeader(request)
+	return await settingsSessionStorage.getSession(cookie)
+}
 
 const polyglotizationSchema = z.array(
 	z.object({
-		language: z.enum(targetLangs),
+		language: TargetLangCode,
 		expressions: z.array(z.string()),
 	}),
 )
@@ -19,16 +41,24 @@ export class Translator {
 		this.translator = new DeeplTranslator(authKey)
 	}
 
-	public async translate(string: string, targets: TargetLanguageCode[]) {
-		const promises = targets.map(async (target) => {
+	public async translate(
+		string: string,
+		sourceLang: SourceLangCode | null | undefined,
+		targetLangs: TargetLangCode[],
+	) {
+		if (!sourceLang || sourceLang === 'detect') {
+			sourceLang = null
+		}
+
+		const promises = targetLangs.map(async (targetLang) => {
 			const translation = await this.translator.translateText(
 				string,
-				null,
-				target,
+				sourceLang,
+				targetLang,
 			)
 
 			return {
-				language: target,
+				language: targetLang,
 				expressions: [translation.text],
 			}
 		})
