@@ -16,6 +16,7 @@ import {
 import { Button } from '#app/components/ui/button.tsx'
 import { Card, CardContent } from '#app/components/ui/card.tsx'
 import { ScrollArea } from '#app/components/ui/scroll-area.tsx'
+import { type ScreenSizeHandle } from '#app/utils/screen-size.ts'
 import { targetLangConfig } from '#app/utils/translation.ts'
 import { getSettingsSession, Translator } from '#app/utils/translator.server.ts'
 import { useIsPending } from '#app/utils/ui.ts'
@@ -27,6 +28,10 @@ export const schema = z.object({
 		})
 		.max(120, 'Expression is limited to 120 characters.'),
 })
+
+export const handle: ScreenSizeHandle = {
+	screenSize: true,
+}
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
 	const settings = await getSettingsSession(request)
@@ -90,7 +95,7 @@ export default function Page() {
 	const allErrors = Object.values(form.allErrors).flat()
 
 	return (
-		<div className="mx-auto flex w-full max-w-[85ch] flex-grow flex-col font-serif">
+		<div className="mx-auto flex min-h-0 w-full max-w-[85ch] flex-grow flex-col font-serif">
 			<ScrollArea className="flex-grow px-4">
 				{actionData?.data && (
 					<div className="flex flex-col gap-y-4 py-4">

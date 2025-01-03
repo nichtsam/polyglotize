@@ -2,6 +2,8 @@ import { type MetaFunction, type LinksFunction } from '@remix-run/node'
 import { Links, Meta, Outlet, Scripts } from '@remix-run/react'
 import stylesheet from '#app/styles/app.css?url'
 import { SiteHeader } from './components/site-header'
+import { useScreenSize } from './utils/screen-size.ts'
+import { cn } from './utils/ui.ts'
 
 export const meta: MetaFunction = () => [
 	{ title: 'Polyglotize' },
@@ -34,10 +36,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+	const screenSize = useScreenSize()
+
 	return (
-		<div className="flex min-h-svh flex-col">
+		<div
+			className={cn('flex min-h-svh flex-col', screenSize && 'h-svh max-h-svh')}
+		>
 			<SiteHeader />
-			<div className="flex flex-grow flex-col">
+			<div className={cn('flex flex-grow flex-col', screenSize && 'min-h-0')}>
 				<Outlet />
 			</div>
 		</div>
