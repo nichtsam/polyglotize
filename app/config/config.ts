@@ -2,12 +2,7 @@ import { type NavLink } from '#app/model/nav.ts'
 
 export const mainNav: NavLink[] = [
 	{
-		title: 'Translate',
-		href: '/translate',
+		title: 'Settings',
+		href: '/settings',
 	},
-	{
-		title: 'elaborate',
-		href: '/elaborate',
-		disabled: true,
-	},
-].filter(({ disabled }) => !disabled)
+]

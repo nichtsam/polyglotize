@@ -10,17 +10,11 @@ import {
 	type LoaderFunctionArgs,
 	type ActionFunctionArgs,
 	data,
-	HeadersFunction,
 	redirect,
 } from '@remix-run/node'
-import {
-	Form,
-	useActionData,
-	useFetcher,
-	useLoaderData,
-} from '@remix-run/react'
+import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { Check, ChevronsUpDown } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { z } from 'zod'
 import { ErrorList } from '#app/components/form.tsx'
 import { Button } from '#app/components/ui/button.tsx'
@@ -81,7 +75,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 	settingsSession.set('sourceLanguage', sourceLanguage)
 	settingsSession.set('targetLanguages', targetLanguages)
 
-	return redirect('/translate', {
+	return redirect('/', {
 		headers: {
 			'Set-Cookie': await settingsSessionStorage.commitSession(settingsSession),
 		},
