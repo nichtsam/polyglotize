@@ -46,6 +46,7 @@
     "cross-env": "7.0.3",
     "deepl-node": "1.15.0",
     "dotenv": "16.4.7",
+    "elevenlabs": "1.50.2",
     "express": "4.21.2",
     "get-port": "7.1.0",
     "isbot": "4",

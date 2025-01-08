@@ -92,13 +92,6 @@ export default function Setting() {
 		onValidate: ({ formData }) => parseWithZod(formData, { schema }),
 	})
 
-	console.log({
-		data,
-		actionData,
-		formValue: form.value,
-		dirty: form.dirty,
-	})
-
 	return (
 		<div className="prose mx-auto flex w-full flex-grow flex-col p-4 dark:prose-invert">
 			<h2>Translation Configuration</h2>

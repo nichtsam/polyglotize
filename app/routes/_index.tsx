@@ -6,7 +6,15 @@ import {
 	data,
 } from '@remix-run/node'
 import { Form, Link, useActionData, useLoaderData } from '@remix-run/react'
-import { AlertCircle, ArrowUp, LoaderCircle, Settings2 } from 'lucide-react'
+import {
+	AlertCircle,
+	ArrowUp,
+	CircleStop,
+	LoaderCircle,
+	Settings2,
+	Speech,
+} from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 import { z } from 'zod'
 import {
 	Alert,
@@ -47,7 +55,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 	const targetLanguages = translationSession.get('targetLanguages')
 
 	if (!targetLanguages) {
-		throw new Error('TODO')
+		throw new Response('targetLanguages is required', { status: 400 })
 	}
 
 	const formData = await request.formData()
@@ -115,7 +123,10 @@ export default function Page() {
 											({ language, expression }) => (
 												<div key={language}>
 													<h2>{targetLangConfig[language].label}</h2>
-													<p key={expression}>{expression}</p>
+													<div className="flex items-center gap-x-2">
+														<SpeechButton lang={language} text={expression} />
+														<p key={expression}>{expression}</p>
+													</div>
 												</div>
 											),
 										)}
@@ -201,5 +212,63 @@ export default function Page() {
 				</Form>
 			</div>
 		</div>
+	)
+}
+
+function SpeechButton({ text, lang }: { text: string; lang: string }) {
+	const [, triggerRender] = useState({})
+	const [enabled, setEnabled] = useState(false)
+	const audioRef = useRef<HTMLAudioElement>(null)
+
+	const play = () => {
+		if (!audioRef.current) {
+			return
+		}
+
+		void audioRef.current.play()
+
+		triggerRender({})
+	}
+	const pause = () => {
+		if (!audioRef.current) {
+			return
+		}
+
+		audioRef.current.pause()
+		audioRef.current.currentTime = 0
+
+		triggerRender({})
+	}
+
+	useEffect(() => {
+		setEnabled(false)
+		audioRef.current?.load()
+	}, [text])
+
+	return (
+		<Button
+			variant="ghost"
+			size="icon"
+			onClick={() => {
+				if (!enabled) {
+					setEnabled(true)
+				}
+
+				if (!audioRef.current) {
+					return
+				}
+
+				if (audioRef.current.paused) {
+					play()
+				} else {
+					pause()
+				}
+			}}
+		>
+			{audioRef.current?.paused ? <Speech /> : <CircleStop />}
+			<audio ref={audioRef} onPause={() => pause()}>
+				{enabled && <source src={`/api/audio?lang=${lang}&text=${text}`} />}
+			</audio>
+		</Button>
 	)
 }
