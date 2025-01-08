@@ -112,12 +112,10 @@ export default function Page() {
 								<CardContent className="px-4 py-2">
 									<article className="flex flex-col gap-y-4">
 										{actionData.data.translation.map(
-											({ language, expressions }) => (
+											({ language, expression }) => (
 												<div key={language}>
 													<h2>{targetLangConfig[language].label}</h2>
-													{expressions.map((expr) => (
-														<p key={expr}>{expr}</p>
-													))}
+													<p key={expression}>{expression}</p>
 												</div>
 											),
 										)}

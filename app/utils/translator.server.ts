@@ -30,7 +30,7 @@ export const getSettingsSession = async (request: Request) => {
 const polyglotizationSchema = z.array(
 	z.object({
 		language: TargetLangCode,
-		expressions: z.array(z.string()),
+		expression: z.string(),
 	}),
 )
 
@@ -59,7 +59,7 @@ export class Translator {
 
 			return {
 				language: targetLang,
-				expressions: [translation.text],
+				expression: translation.text,
 			}
 		})
 
