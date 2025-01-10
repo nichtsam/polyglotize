@@ -30,7 +30,10 @@ export const getSettingsSession = async (request: Request) => {
 const polyglotizationSchema = z.array(
 	z.object({
 		language: TargetLangCode,
-		expression: z.string(),
+		expression: z.object({
+			formal: z.string(),
+			informal: z.string(),
+		}),
 	}),
 )
 
@@ -51,15 +54,24 @@ export class Translator {
 		}
 
 		const promises = targetLangs.map(async (targetLang) => {
-			const translation = await this.translator.translateText(
-				string,
-				sourceLang,
-				targetLang,
-			)
+			const promises = [
+				this.translator.translateText(string, sourceLang, targetLang, {
+					formality: 'prefer_more',
+				}),
+
+				this.translator.translateText(string, sourceLang, targetLang, {
+					formality: 'prefer_less',
+				}),
+			]
+
+			const [{ text: formal }, { text: informal }] = await Promise.all(promises)
 
 			return {
 				language: targetLang,
-				expression: translation.text,
+				expression: {
+					formal,
+					informal,
+				},
 			}
 		})
 

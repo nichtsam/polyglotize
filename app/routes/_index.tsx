@@ -120,12 +120,16 @@ export default function Page() {
 								<CardContent className="px-4 py-2">
 									<article className="flex flex-col gap-y-4">
 										{actionData.data.translation.map(
-											({ language, expression }) => (
+											({ language, expression: { formal, informal } }) => (
 												<div key={language}>
 													<h2>{targetLangConfig[language].label}</h2>
 													<div className="flex items-center gap-x-2">
-														<SpeechButton lang={language} text={expression} />
-														<p key={expression}>{expression}</p>
+														<SpeechButton lang={language} text={formal} />
+														<p>{formal} (formal)</p>
+													</div>
+													<div className="flex items-center gap-x-2">
+														<SpeechButton lang={language} text={informal} />
+														<p>{informal} (informal)</p>
 													</div>
 												</div>
 											),
@@ -246,9 +250,8 @@ function SpeechButton({ text, lang }: { text: string; lang: string }) {
 	}, [text])
 
 	return (
-		<Button
-			variant="ghost"
-			size="icon"
+		<button
+			className="flex h-4 w-4 items-center justify-center hover:text-muted-foreground"
 			onClick={() => {
 				if (!enabled) {
 					setEnabled(true)
@@ -269,6 +272,6 @@ function SpeechButton({ text, lang }: { text: string; lang: string }) {
 			<audio ref={audioRef} onPause={() => pause()}>
 				{enabled && <source src={`/api/audio?lang=${lang}&text=${text}`} />}
 			</audio>
-		</Button>
+		</button>
 	)
 }
